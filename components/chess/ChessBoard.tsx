@@ -2,7 +2,6 @@
 
 import {Game} from '@/engine/game';
 import {ChessRuleSet} from '@/engine/chessRuleSet';
-import {GameResult, GameStatus} from '@/engine/constants/game';
 import {Position} from '@/engine/types';
 import {useState, useRef} from 'react';
 import ChessPiece from "./ChessPiece";
@@ -18,7 +17,7 @@ const pieceSymbols = {
   }
 };
 
-export default function ChessBoard() 
+export default function ChessBoard()
 {
   const [game] = useState(() => {
     const newGame = new Game();
@@ -26,21 +25,14 @@ export default function ChessBoard()
     return newGame;
   });
 
-  console.log(game);
-
   const [__, setBoard] = useState(0);
-
   const [square, setSquare] = useState<Position | null>(null);
-
-  const [legalMoves, setLegalMoves] = useState<Position []>([]);
-
-  const [drag, setDrag] = useState(false);
+  const [legalMoves, setLegalMoves] = useState<Position[]>([]);
 
   const board = game.board.positionMap;
-
   const boardRef = useRef<HTMLDivElement>(null);
 
-  function handleClick(x: number, y: number) 
+  function handleClick(x: number, y: number)
   {
     const clickedPiece = board[y][x];
 
@@ -80,7 +72,6 @@ export default function ChessBoard()
     }
 
     if (!clickedPiece) return;
-
     if (clickedPiece.color !== game.currentTurnColor) return;
 
     const moves = ChessRuleSet.getLegalMoves(
@@ -92,20 +83,15 @@ export default function ChessBoard()
     setLegalMoves(moves);
   }
 
-  function isSelected(x: number, y: number) 
+  function isSelected(x: number, y: number)
   {
-    return (
-      square?.x === x &&
-      square?.y === y
-    );
+    return square?.x === x && square?.y === y;
   }
 
-  function isLegalMove(x: number, y: number) 
+  function isLegalMove(x: number, y: number)
   {
     return legalMoves.some(
-      (move) =>
-        move.x === x &&
-        move.y === y
+      (move) => move.x === x && move.y === y
     );
   }
 
@@ -121,8 +107,6 @@ export default function ChessBoard()
     ) {
       return;
     }
-
-    setDrag(true);
 
     setSquare({x, y});
 
@@ -141,12 +125,10 @@ export default function ChessBoard()
     clientY: number
   )
   {
-    setDrag(false);
-
     const boardElement = boardRef.current;
 
     if (!boardElement) {
-      return;
+      return false;
     }
 
     const rect =
@@ -173,35 +155,30 @@ export default function ChessBoard()
     ) {
       setSquare(null);
       setLegalMoves([]);
-      return;
+      return false;
     }
 
     const result =
       game.playMoveWithValidation({
-        from: {
-          x: fromX,
-          y: fromY
-        },
-        to: {
-          x: toX,
-          y: toY
-        }
+        from: {x: fromX, y: fromY},
+        to: {x: toX, y: toY}
       });
 
     if (result.executed) {
       setSquare(null);
       setLegalMoves([]);
       setBoard((change) => change + 1);
-      return;
+      return true;
     }
 
     setSquare(null);
     setLegalMoves([]);
+
+    return false;
   }
 
   return (
-    <div className="relative">
-
+    <div>
       <div
         ref={boardRef}
         className="grid aspect-square w-[min(90vw,640px)] grid-cols-8 border-4 border-slate-700 shadow-2xl"
@@ -223,12 +200,11 @@ export default function ChessBoard()
                 rowIndex
               );
 
-            const symbol =
-              piece
-                ? pieceSymbols[
-                    piece.color
-                  ][piece.name]
-                : "";
+            const symbol = piece
+              ? pieceSymbols[
+                  piece.color
+                ][piece.name]
+              : "";
 
             return (
               <button
@@ -254,25 +230,23 @@ export default function ChessBoard()
                   <ChessPiece
                     symbol={symbol}
                     color={piece.color}
-                    isTurn={piece.color === game.currentTurnColor}
+                    isTurn={
+                      piece.color ===
+                      game.currentTurnColor
+                    }
                     onDragStart={() => {
                       handleDragStart(
                         columnIndex,
                         rowIndex
                       );
                     }}
-                    onDragEnd={(
-                      clientX,
-                      clientY
-                    ) => {
-                      handleDragEnd(
+                    onDragEnd={(clientX, clientY) => {
+                      return handleDragEnd(
                         columnIndex,
                         rowIndex,
                         clientX,
                         clientY
                       );
-
-                      return true;
                     }}
                   />
                 )}
@@ -288,7 +262,7 @@ export default function ChessBoard()
                 )}
               </button>
             );
-          }),
+          })
         )}
       </div>
 
@@ -298,14 +272,6 @@ export default function ChessBoard()
           {game.currentTurnColor}
         </span>
       </div>
-
-      {game.currentStatus === GameStatus.DRAW &&
-        game.currentResult === GameResult.THREE_FOLD_REPETITION && (
-          <div className="mt-4 rounded-lg bg-yellow-500 px-4 py-3 text-center font-bold text-black">
-            Draw by Threefold Repetition
-          </div>
-        )}
-
     </div>
   );
 }
