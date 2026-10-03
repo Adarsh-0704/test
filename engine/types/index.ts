@@ -1,0 +1,2 @@
+export type { Position, LegalPosition, MoveVec2, MoveConditionFunction, OnMove, Move, MoveQuery, MoveRecord, MoveRemark, ValidMove, InvalidMove, IsValidMove } from './move';
+export type { SoftFixedArray, SoftFixedArrayGrid, StaticMethodsMatching } from './util';
